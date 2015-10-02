@@ -2,6 +2,7 @@ require 'gosu'
 require_relative 'player'
 require_relative 'enemy'
 require_relative 'bullet'
+require_relative 'explosion'
 
 class SectorFive < Gosu::Window
   WIDTH = 800
@@ -13,10 +14,9 @@ class SectorFive < Gosu::Window
     self.caption = 'Sector Five'
 
     @player = Player.new(self)
-
     @enemies = []
-
     @bullets = []
+    @explosions = []
   end
 
   def update
@@ -44,8 +44,23 @@ class SectorFive < Gosu::Window
         if distance < enemy.radius + bullet.radius
           @enemies.delete enemy
           @bullets.delete bullet
+          @explosions.push Explosion.new(self, enemy.x, enemy.y)
         end
       end
+    end
+
+    @explosions.dup.each do |explosion|
+      @explosions.delete explosion if explosion.finished
+    end
+
+    @enemies.dup.each do |enemy|
+      if enemy.y > HEIGHT + enemy.radius
+        @enemies.delete enemy
+      end
+    end
+
+    @bullets.dup.each do |bullet|
+      @bullets.delete bullet unless bullet.onscreen?
     end
   end
 
@@ -58,6 +73,10 @@ class SectorFive < Gosu::Window
 
     @bullets.each do |bullet|
       bullet.draw
+    end
+
+    @explosions.each do |explosion|
+      explosion.draw
     end
   end
 
